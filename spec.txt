@@ -1,0 +1,340 @@
+Spec
+
+O estado do jogo começa em WAITING.
+
+Cada conexão recebe o estado do jogo.
+
+Uma pessoa conecta.
+Um socket é adicionado ao crowd.
+
+Uma segunda pessoa conecta.
+Um socket é adicionado ao crowd.
+
+O estado do jogo passa para PREPARE.
+
+A interface mostra a seleção de atributos e um botão para confirmar.
+Os dois primeiros sockets que confirmarem são transformados em jogadores.
+Uma luta é definida.
+
+let fight = {
+	player1: [[Object]],
+	player2: [[Object]],
+	initiative: '' // quem tem a iniciativa
+	turn: ''
+}
+
+O estado do jogo passa para READY TO FIGHT para os jogadores.
+O estado do jogo passa para READY TO WATCH para o crowd.
+
+A interface dos não jogadores mostra um log de eventos da luta.
+
+O jogador que tem a iniciativa tem seu estado de luta definido como MANEUVER.
+O outro jogador tem seu estado de luta definido como WAITING MANEUVER.
+
+A interface do jogador com a iniciativa mostra as opções de manobra e um botão para confirmar.
+
+Após a confirmação o sistema processa a manobra e faz as jogadas.
+A manobra é registrada no turno.
+
+player1.turns = [{
+	maneuver: '',
+	hitLocation: '',
+	roll: 0
+}];
+
+Se o outro jogador tem direito a defesa:
+(última manobra não foi ataque total)
+
+	O outro jogador (jogador defensor) recebe a notificação do ataque.
+
+	O jogador defensor tem seu estado de luta definido como ACTIVE DEFENSE.
+	O jogador atacante tem seu estado de luta definido como WAITING ACTIVE DEFENSE.
+
+	A interface do jogador defensor mostra a seleção de defesa ativa e um botão para confirmar.
+
+	Após a confirmação o sistema processa a defesa. Caso o ataque tenha sido bem sucedido o dano é calculado, o choque é calculado.
+	Os demais efeitos do dano são calculados.
+
+	O resultados são registrados no turno do jogador atacante.
+	(ou no turno do defensor? ou ambos?)
+
+	rounds = [];
+	round = {
+		player1: {
+			maneuver: 'attack',
+			hitLocation: 'torso'
+			roll: 14,
+			damage: 2,
+			success: true
+			target: {
+				name: 'player2',
+				activeDefense: 'dodge',
+				roll: 8,
+				success: false,
+				shock: 2
+			}
+		},
+		player2: {
+			maneuver: 'evaluate',
+			target: {
+				name: 'player1'
+			}
+		}
+	};
+	rounds.push(round);
+
+Caso o outro jogador não tenha direito a defesa o dano é calculado e registrado.
+
+round = {
+	player1: {
+		maneuver: 'attack',
+		hitLocation: 'face'
+		roll: 11,
+		damage: 3,
+		success: true,
+		target: {
+			name: 'player2',
+			shock: 3
+		}
+	},
+	player2: {
+		maneuver: 'attack',
+		hitLocation: 'torso',
+		roll: 9,
+		damage: 1,
+		target: {
+			name: 'player1',
+			activeDefense: 'parry',
+			roll: 9,
+			success: false,
+			shock: 1
+		}
+	}
+};
+
+###
+
+ESTADOS DO JOGO
+
+	WAITING
+	PREPARE
+
+	READY TO FIGHT
+	READY TO WATCH
+
+	ESTADOS DA LUTA
+
+		MANEUVER | WAITING MANEUVER
+		message: maneuver + hit location + roll || maneuver + hit location + roll + damage
+		WAITING ACTIVE DEFENSE | ACTIVE DEFENSE
+		message: active defense + roll
+
+###
+
+Sequência
+
+Jogador 1 conecta
+=> contador de jogadores aumenta em um
+=> um sinal é enviado para todos os jogadores informando o número registrado no contador de jogadores
+
+Jogador 2 conecta
+=> contador de jogadores aumenta em um
+=> um sinal é enviado para todos os jogadores informando o número registrado no contador de jogadores
+
+Um sinal é enviado para todos os jogadores informando que o número mínimo de jogadores para uma luta foi atingido
+	- o jogo está aguardando dois jogadores aceitarem uma luta
+	- a interface deve mostrar um campo para seleção de atributos
+	- a interface deve mostrar um botão de aceitação que envie um sinal com os atributos selecionados e corresponda a um aceite
+=> o sistema confere a seleção, a valida e cria um novo lutador baseado nos atributos selecionados
+
+Quando dois lutadores forem criados
+=> o sistema não aceita mais aceite de luta
+=> um sinal é enviado para os jogadores não lutadores informando que a luta está fechada
+	- a interface de seleção de atributos deve ser desabilitadas para todos eles
+=> um sinal é enviado para todos os jogadores informando que uma luta vai começar
+	- interface deve mostrar que uma luta está ocorrendo
+
+A iniciativa de cada lutador é calculada
+O jogador com a maior iniciativa é registrado
+
+O jogador primário (com a maior iniciativa) recebe um sinal informando que sua manobra é esperada
+O jogador secundário recebe um sinal informando que o jogador primário está selecionando sua manobra
+
+O jogador primário seleciona uma manobra, sua interface mostra um botão para confirmar
+	- a confirmação envia um sinal para o sistema
+	- a manobra é processada
+		- levando em conta a perícia, o alvo e os bônus
+		- uma jogada é feita, o resultado é registrado (assim como o resultado mínimo necessário)
+		- um sinal é enviado para todos os lutadores informando os detalhes da manobra e o resultado
+		- a interface do jogador secundário deve mostrar a seleção de defesa
+
+O jogador secundário seleciona uma defesa, sua interface mostra um botão para confirmar
+	- a confirmação envia um sinal para o sistema
+	- a defesa é processada
+		- levando em conta o valor da defesa ativa e quaisquer bônus do adversário
+		- uma jogada é feita, o resultado é registrado (assim como o resultado mínimo necessário)
+		- caso a defesa seja bem sucedidad o dano é calculado
+			- os efeitos do dano são calculados
+		- um sinal é enviado para todos os lutadores informando os detalhes da defesa e o resultado
+		- a interface do jogador secundário deve mostrar a seleção de manobra (se ele ainda estiver em combate)
+
+
+EXEMPLOS DE MENSAGENS
+
+"All-Out Attack, Punch, Hit Location: Face (Player 2) {6 + 4 + 2 = 12} SUCCESS"
+"Dodge {3 + 1 + 2 = 6} SUCCESS"
+"Attack, Punch, Hit Location: Face (Player 1) {3 + 4 + 2 = 9} SUCCESS | Damage: 3, Shock: 3"
+
+"Attack, Punch, Hit Location: Torso (Player 2) {5 + 3 + 3 = 11} SUCCESS"
+"Parry {1 + 2 + 3 = 6} SUCCESS"
+"Attack, Punch, Hit Location: Skull (Player 1) {5 + 4 + 6 = 15} FAILURE"
+
+"Attack, Punch, Hit Location: Torso (Player 2) {3 + 3 + 2 = 8} SUCCESS"
+"Dodge {4 + 5 + 6 = 15} FAILURE | Damage 2, Shock 2"
+
+###
+
+EXAMPLO DE DADOS
+
+let fighter(socket, attributes, skills) = {
+	strength: attributes.strength
+	dexterity: attributes.dexterity
+	health: attributes.health
+	socket: socket
+	boxing: skills.boxing
+	activeDefense: {
+		dodge: ((dexterity + health) / 4).toFixed(2),
+		parry: (boxing / 2) + 3
+	}
+	hitPoints: attributes.strength
+}
+
+let fight = {
+	player1: [[fighter]]
+	player2: [[fighter]]
+	turns: [turn, turn]
+}
+
+let turn = {
+	player1: {
+		shock: 0
+		maneuver: {
+			name: 'allOutAttack'
+			hitLocation: 'face'
+			target: 'player2'
+			successRoll: {
+				description: '6 + 4 + 2 = 12'
+				result: 12
+				target: 19
+				modifiedTarget: 12
+				status: true
+			}
+			status: 'SUCCESS'
+		}
+		activeDefense: null
+	}
+	player2: {
+		shock: 0
+		activeDefense: {
+			name: 'dodge'
+			successRoll: {
+				description: '3 + 1 + 2 = 6'
+				result: 6
+				target: 9
+				modifiedTarget: 9
+				status: true
+			}
+			status: 'SUCCESS'
+		}
+		maneuver: {
+			name: 'attack'
+			hitLocation: 'face'
+			target: 'player1'
+			successRoll: {
+				description: '3 + 4 + 2 = 9'
+				result: 9
+				target: 15
+				modifiedTarget: 10
+				status: true
+			}
+			status: 'SUCCESS'
+			damage: 3
+			damageRoll: {
+				description: '(4) - 1 = 3'
+				result: 3
+			}
+		}
+	}
+}
+
+let turn = {
+	player1: {
+		shock: 3
+		maneuver: {
+			name: 'attack'
+			hitLocation: 'torso'
+			target: 'player2'
+			successRoll: {
+				description: '5 + 3 + 3 = 11'
+				result: 11
+				target: 19
+				modifiedTarget: 11
+				status: true
+			}
+			status: 'SUCCESS'
+		}
+	}
+	player2: {
+		activeDefense: {
+			name: 'parry'
+			successRoll: {
+				description: '1 + 2 + 3 = 6'
+				result: 6
+				target: 10
+				modifiedTarget: 10
+				status: true
+			}
+			status: 'SUCCESS'
+		}
+	}
+}
+
+###
+
+0 conexões
+- audience = 0
+- fighters = 0
+- gameState = null
+- fightState = null
+
+1 conexão
+- audience += 1
+- gameState = waiting
+
+2 conexões
+- audience += 1
+- gameState = fight
+- fightState = build
+
+###
+
+Representação de jogada de dados:
+
+6 + 3 + 4 + 6 + 2 = 21 + (3 x 5) = 36 + 3 = 39
+MAX = 30 + (3 x 5) = 45 + 3 = 48
+
+###
+
+Implementar:
+
+==> FP (Feverish Defense, Mighty Blows)
+==> Retreat
+All-Out Defense
+==> Shock
+==> Stun
+==> Knockdown reverse
+
+Bugs:
+
+Após um knockdown a ordem de ação é baseada na iniciativa. Se o knockdown foi causado por um ataque total pelo lutador com a iniciativa, no retorno será a vez do lutador com a iniciativa atacar e o jogo entenderá que a pultima manobra foi um ataque total portanto o jogador que levantou não terá defesa.
+(CORRIGIDO? VERIFICAR...)

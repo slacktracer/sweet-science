@@ -1,0 +1,121 @@
+<h3>
+    Maneuver
+</h3>
+<form
+    data-ng-submit="maneuver.send(maneuver.configuration)"
+    >
+    <div>
+        <label
+            for="maneuver"
+            >
+            Maneuver
+        </label>
+        <select
+            data-ng-model="maneuver.configuration.name"
+            id="maneuver"
+            >
+            <option
+                value="doNothing"
+                >
+                {{maneuver.options.doNothing.name}}
+            </option>
+            <option
+                value="attack"
+                >
+                {{maneuver.options.attack.name}}
+            </option>
+            <option
+                value="allOutAttack"
+                >
+                {{maneuver.options.allOutAttack.name}}
+            </option>
+            <option
+                value="allOutDefense"
+                >
+                {{maneuver.options.allOutDefense.name}}
+            </option>
+            <option
+                value="evaluate"
+                >
+                {{maneuver.options.evaluate.name}}
+            </option>
+        </select>
+    </div>
+    <div
+        data-ng-if="maneuver.configuration.name === 'allOutAttack'"
+        >
+        <label
+            for="allOutAttackOptions"
+            >
+            All-Out Attack Option
+        </label>
+        <select
+            data-ng-model="maneuver.configuration.allOutAttackOption"
+            id="allOutAttackOptions"
+            >
+            <option
+                value="determined"
+                >
+                {{maneuver.options.allOutAttack.options.determined.name}}
+            </option>
+            <option
+                value="strong"
+                >
+                {{maneuver.options.allOutAttack.options.strong.name}}
+            </option>
+        </select>
+    </div>
+    <div
+        data-ng-if="
+            maneuver.configuration.name === 'allOutAttack'
+            ||
+            maneuver.configuration.name === 'attack'
+        "
+        >
+        <label
+            for="hitLocation"
+            >
+            Hit Location
+        </label>
+        <select
+            data-ng-model="maneuver.configuration.hitLocation"
+            id="hitLocation"
+            >
+            <option
+                value="torso"
+                >
+                {{maneuver.hitLocation.options.torso.name}}
+            </option>
+            <option
+                value="skull"
+                >
+                {{maneuver.hitLocation.options.skull.name}}
+            </option>
+            <option
+                value="face"
+                >
+                {{maneuver.hitLocation.options.face.name}}
+            </option>
+        </select>
+    </div>
+    <div
+        data-ng-if="
+            maneuver.configuration.name === 'allOutAttack'
+            ||
+            maneuver.configuration.name === 'attack'
+        "
+        >
+        <label>
+            <input
+                data-ng-model="maneuver.configuration.mighty"
+                type="checkbox"
+                >
+            Mighty Blows
+        </label>
+    </div>
+    <button
+        type="submit"
+        >
+        Submit
+    </button>
+</form>

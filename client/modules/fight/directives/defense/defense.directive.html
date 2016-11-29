@@ -1,0 +1,65 @@
+<h3>
+    Defense
+</h3>
+<form
+    data-ng-submit="defense.send(defense.configuration)"
+    >
+    <div>
+        <label
+            for="defense"
+            >
+            Defense
+        </label>
+        <select
+            data-ng-model="defense.configuration.name"
+            id="defense"
+            >
+            <option
+                value="takeIt"
+                >
+                {{defense.options.takeIt.name}}
+            </option>
+            <option
+                value="dodge"
+                >
+                {{defense.options.dodge.name}}
+            </option>
+            <option
+                value="parry"
+                >
+                {{defense.options.parry.name}}
+            </option>
+        </select>
+    </div>
+    <div
+    data-ng-if="
+            defense.configuration.name !== 'takeIt'
+        "
+        >
+        <label>
+            <input
+                data-ng-model="defense.configuration.retreat"
+                type="checkbox"
+                >
+            Retreat
+        </label>
+    </div>
+    <div
+    data-ng-if="
+            defense.configuration.name !== 'takeIt'
+        "
+        >
+        <label>
+            <input
+                data-ng-model="defense.configuration.feverish"
+                type="checkbox"
+                >
+            Feverish Defense
+        </label>
+    </div>
+    <button
+        type="submit"
+        >
+        Submit
+    </button>
+</form>

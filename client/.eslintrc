@@ -1,0 +1,30 @@
+{
+    "env": {
+        "browser": true
+    },
+    "globals": {
+        "angular": false,
+        "Primus": false
+    },
+    "rules": {
+        "no-var": 0,
+        "quotes": [
+            2,
+            "single"
+        ],
+        "one-var": [
+            2,
+            {
+                "const": "never",
+                "let": "never",
+                "var": "always"
+            }
+        ],
+        "object-shorthand": [
+            2,
+            "never"
+        ],
+        "sort-vars": 2,
+        "vars-on-top": 2
+    }
+}

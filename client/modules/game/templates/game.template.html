@@ -1,0 +1,25 @@
+<div
+    data-ng-controller="Game as game"
+    style="font-family: monospace;"
+    >
+    <div>
+        Audience: {{game.interface.audience}} ({{game.interface.fighters}})
+    </div>
+    <div
+        data-ng-switch="game.interface.state"
+        >
+        <div
+            data-ng-switch-when="waiting"
+            data-ss-build
+            >
+        </div>
+        <div
+            data-ng-switch-when="fightInProgress"
+            >
+            <div
+                data-ng-include="'modules/fight/templates/fight.template.html'"
+                >
+            </div>
+        </div>
+    </div>
+</div>
